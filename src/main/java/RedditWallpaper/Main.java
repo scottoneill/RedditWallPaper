@@ -40,7 +40,7 @@ public class Main {
         
         RedditClient redditClient = new RedditClient(myUserAgent);
         
-        Credentials cred = Credentials.script("ESS_J", "terrible", "SAHI--d624Jzyg", "xtVjNkdsN3jsyLf-mPoHZ0dtvYI");
+        Credentials cred = Credentials.script("ESS_J", "<redditPassword>", "<clientID>", "<clientSecret>");
         
         OAuthData authData = null;
         try {
