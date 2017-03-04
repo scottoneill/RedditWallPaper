@@ -1,127 +1,75 @@
 package RedditWallpaper;
 
-import java.util.*;
-import net.dean.jraw.paginators.Paginator;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.UserAgent;
-import net.dean.jraw.http.oauth.Credentials;
-import net.dean.jraw.http.oauth.OAuthData;
-import net.dean.jraw.http.oauth.OAuthException;
+import java.util.Properties;
 import net.dean.jraw.paginators.SubredditPaginator;
-import net.dean.jraw.*;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
-import org.apache.commons.io.*;
-import java.net.URL;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.Random;
-
-import com.sun.jna.Native;
 import com.sun.jna.platform.win32.WinDef.UINT_PTR;
-import com.sun.jna.win32.*;
-import com.sun.jna.win32.W32APIOptions;
-
-
-
 
 public class Main {
     
-    public static native int SystemParametersInfo(int uiAction, int uiParam, String pvParam, int fWinIni);
-    
-    static {
-        System.loadLibrary("user32");
-    }
-    public static void main(String[] args) throws NetworkException {
-        UserAgent myUserAgent = UserAgent.of("desktop", "Wallpaper.Main", "v0.1", "Ess_J");
+    public static void main(String[] args) throws InterruptedException {
         
-        RedditClient redditClient = new RedditClient(myUserAgent);
+        String configFile = "src/main/resources/config.properties";
+        Properties prop = getConfigProperties(configFile);
         
-        Credentials cred = Credentials.script("***REMOVED***", "<redditPassword>", "<clientID>", "<clientSecret>");
+        RedditConnection connection = new RedditConnection(prop);
+        connection.authenticate();
+        System.out.println(connection.getRedditClient().me());
         
-        OAuthData authData = null;
-        try {
-            authData = redditClient.getOAuthHelper().easyAuth(cred);
-        } catch (OAuthException ex) {
-            System.out.println("Could not valid user: " + ex);
-            System.exit(1);
-        }
-        
-        redditClient.authenticate(authData);
-        
-        System.out.println(redditClient.me());
-        
-        SubredditPaginator earthPorn = new SubredditPaginator(redditClient, "EarthPorn");
+        SubredditPaginator earthPorn = new SubredditPaginator(connection.getRedditClient(), "EarthPorn");
+        Wallpaper w = new Wallpaper();
         
         Listing<Submission> submissions = earthPorn.next();
-               
-        Random random = new Random();
         
-        boolean isImage = false;
-        int number;
-        Submission s = null;
+        int hours = 1;
+        int minutes = 0;
+        int seconds = 0;
         
-        while (!isImage) {
-            number = random.nextInt(submissions.size()-1);
-            s = submissions.get(number);
-            isImage = s.getPostHint().equals(Submission.PostHint.IMAGE);
+        long waitTime = getTimeinMS(hours, minutes, seconds);
+        
+        int count = 0;
+        while (true) {
+            
+            w.chooseWallpaper(submissions);
+            w.downloadFile();
+            SPI.INSTANCE.SystemParametersInfo(
+                new UINT_PTR(SPI.SPI_SETDESKWALLPAPER),
+                new UINT_PTR(0),
+                w.getFilePath(),
+                new UINT_PTR(SPI.SPIF_UPDATEINIFILE | SPI.SPIF_SENDWININICHANGE));
+            
+            
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            
+            if (count == 5) {
+                submissions = earthPorn.next();
+                count = 0;
+            } else {
+                count++;
+            }
+            
         }
-        System.out.println("Chosen: " + s.getTitle());
-
-        String path = getFilePath(s);
-
-        downloadFile(path, s.getUrl());
-
-        SPI.INSTANCE.SystemParametersInfo(
-            new UINT_PTR(SPI.SPI_SETDESKWALLPAPER),
-            new UINT_PTR(0),
-            path,
-            new UINT_PTR(SPI.SPIF_UPDATEINIFILE | SPI.SPIF_SENDWININICHANGE));
-    }
-
-    
-    public interface SPI extends StdCallLibrary {
-
-        //MSDN article
-        long SPI_SETDESKWALLPAPER = 20;
-        long SPIF_UPDATEINIFILE = 0x01;
-        long SPIF_SENDWININICHANGE = 0x02;
-
-
-        SPI INSTANCE = (SPI) Native.loadLibrary("user32", SPI.class, W32APIOptions.DEFAULT_OPTIONS);
-
-        boolean SystemParametersInfo(
-            UINT_PTR uiAction,
-            UINT_PTR uiParam,
-            String pvParam,
-            UINT_PTR fWinIni        
-        );
     }
     
-    public static String getFilePath(Submission s) {
-        String dir = "C:\\Users\\Scott\\Desktop\\Earth Porn";
-        String path = dir + "\\" + s.getTitle() + ".jpg";
+    public static Properties getConfigProperties(String configFilePath) {
+        UseProperties useProperties = new UseProperties();
+        useProperties.loadConfigFile(configFilePath);
         
-        return path;
-    } 
+        return useProperties.getProperties();
+    }
     
-    public static void downloadFile(String filePath, String downloadURL) {
-        File file = new File(filePath);
-        URL url = null;
+    public static long getTimeinMS(int hours, int minutes, int seconds) {
+        long time = 0;
         
-        try {
-            url = new URL(downloadURL);
-        } catch (MalformedURLException ex) {
-            System.out.println("Malformed URL: " + ex);
-        }
-
-        try {
-            FileUtils.copyURLToFile(url, file, 1000, 1000);
-        } catch (IOException ex) {
-            System.out.println("IO Exception: " + ex);
-        }
+        time += 1000 * seconds;
+        time += 1000 * 60 * minutes;
+        time += 1000 * 60 * 60 * hours;
+        
+        return time;
     }
 }

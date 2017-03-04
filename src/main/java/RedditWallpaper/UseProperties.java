@@ -12,8 +12,10 @@ public class UseProperties {
     private InputStream input;
     
     
-    public UseProperties(String configFile) {
+    public UseProperties() {
         this.prop = new Properties();
+        this.configFile = null;
+        this.input = null;
     }
     
     public String getConfigFile() {
@@ -24,22 +26,25 @@ public class UseProperties {
         return this.prop;
     }
     
-    public void loadConfigFile(String ConfigFile) {
+    public void loadConfigFile(String configFile) {
         this.configFile = configFile;
-        input = null;
         
+        if (this.configFile == null) {
+            System.out.println("prop is null");
+            return;
+        }
         try {
-            input = new FileInputStream(configFile);
-            this.prop.load(input);
+            this.input = new FileInputStream(this.configFile);
+            this.prop.load(this.input);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
     
     public void closeProperties() {
-        if (input != null) {
+        if (this.input != null) {
             try {
-                input.close();
+                this.input.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
