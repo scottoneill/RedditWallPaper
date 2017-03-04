@@ -16,8 +16,6 @@ import java.net.URL;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.Random;
 
 import com.sun.jna.Native;
@@ -30,17 +28,26 @@ import com.sun.jna.win32.W32APIOptions;
 
 public class Main {
     
-    public static native int SystemParametersInfo(int uiAction, int uiParam, String pvParam, int fWinIni);
-    
-    static {
-        System.loadLibrary("user32");
-    }
     public static void main(String[] args) throws NetworkException {
-        UserAgent myUserAgent = UserAgent.of("desktop", "Wallpaper.Main", "v0.1", "Ess_J");
         
+        UseProperties useProperties = new UseProperties();
+        
+        useProperties.loadConfigFile("src/main/resources/config.properties");
+        
+        Properties prop = useProperties.getProperties();        
+        
+        UserAgent myUserAgent = UserAgent.of(
+                prop.getProperty("TARGET_PLATFORM"),
+                prop.getProperty("UNIQUE_ID"),
+                prop.getProperty("APP_VERSION"),
+                prop.getProperty("REDDIT_USERNAME"));
+                
         RedditClient redditClient = new RedditClient(myUserAgent);
-        
-        Credentials cred = Credentials.script("***REMOVED***", "***REMOVED***", "***REMOVED***", "***REMOVED***");
+        Credentials cred = Credentials.script(
+                prop.getProperty("REDDIT_USERNAME"),
+                prop.getProperty("REDDIT_PASSWORD"),
+                prop.getProperty("CLIENT_ID"),
+                prop.getProperty("CLIENT_SECRET"));
         
         OAuthData authData = null;
         try {
