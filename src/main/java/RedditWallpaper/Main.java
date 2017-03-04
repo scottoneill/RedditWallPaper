@@ -1,61 +1,59 @@
 package RedditWallpaper;
 
-import java.util.*;
-import net.dean.jraw.http.NetworkException;
-import net.dean.jraw.http.UserAgent;
-import net.dean.jraw.http.oauth.Credentials;
-import net.dean.jraw.http.oauth.OAuthData;
-import net.dean.jraw.http.oauth.OAuthException;
+import java.util.Properties;
 import net.dean.jraw.paginators.SubredditPaginator;
-import net.dean.jraw.*;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
 import com.sun.jna.platform.win32.WinDef.UINT_PTR;
 
 public class Main {
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         
         String configFile = "src/main/resources/config.properties";
         Properties prop = getConfigProperties(configFile);
         
-        UserAgent myUserAgent = UserAgent.of(
-                prop.getProperty("TARGET_PLATFORM"),
-                prop.getProperty("UNIQUE_ID"),
-                prop.getProperty("APP_VERSION"),
-                prop.getProperty("REDDIT_USERNAME"));
-                
-        RedditClient redditClient = new RedditClient(myUserAgent);
-        Credentials cred = Credentials.script(
-                prop.getProperty("REDDIT_USERNAME"),
-                prop.getProperty("REDDIT_PASSWORD"),
-                prop.getProperty("CLIENT_ID"),
-                prop.getProperty("CLIENT_SECRET"));
+        RedditConnection connection = new RedditConnection(prop);
+        connection.authenticate();
+        System.out.println(connection.getRedditClient().me());
         
-        OAuthData authData = null;
-        try {
-            authData = redditClient.getOAuthHelper().easyAuth(cred);
-        } catch (OAuthException ex) {
-            System.out.println("Could not validate user: " + ex);
-            System.exit(1);
-        }
-        redditClient.authenticate(authData);
+        SubredditPaginator earthPorn = new SubredditPaginator(connection.getRedditClient(), "EarthPorn");
+        Wallpaper w = new Wallpaper();
         
-        System.out.println(redditClient.me());
-        
-        SubredditPaginator earthPorn = new SubredditPaginator(redditClient, "EarthPorn");
         Listing<Submission> submissions = earthPorn.next();
         
-        Wallpaper w = new Wallpaper();
-        w.chooseWallpaper(submissions);
+        int hours = 1;
+        int minutes = 0;
+        int seconds = 0;
         
-        w.downloadFile();
-
-        SPI.INSTANCE.SystemParametersInfo(
-            new UINT_PTR(SPI.SPI_SETDESKWALLPAPER),
-            new UINT_PTR(0),
-            w.getFilePath(),
-            new UINT_PTR(SPI.SPIF_UPDATEINIFILE | SPI.SPIF_SENDWININICHANGE));
+        long waitTime = getTimeinMS(hours, minutes, seconds);
+        
+        int count = 0;
+        while (true) {
+            
+            w.chooseWallpaper(submissions);
+            w.downloadFile();
+            SPI.INSTANCE.SystemParametersInfo(
+                new UINT_PTR(SPI.SPI_SETDESKWALLPAPER),
+                new UINT_PTR(0),
+                w.getFilePath(),
+                new UINT_PTR(SPI.SPIF_UPDATEINIFILE | SPI.SPIF_SENDWININICHANGE));
+            
+            
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            
+            if (count == 5) {
+                submissions = earthPorn.next();
+                count = 0;
+            } else {
+                count++;
+            }
+            
+        }
     }
     
     public static Properties getConfigProperties(String configFilePath) {
@@ -63,5 +61,15 @@ public class Main {
         useProperties.loadConfigFile(configFilePath);
         
         return useProperties.getProperties();
+    }
+    
+    public static long getTimeinMS(int hours, int minutes, int seconds) {
+        long time = 0;
+        
+        time += 1000 * seconds;
+        time += 1000 * 60 * minutes;
+        time += 1000 * 60 * 60 * hours;
+        
+        return time;
     }
 }
