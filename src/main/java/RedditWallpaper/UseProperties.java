@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.lang.ClassLoader;
 
 
 public class UseProperties {
@@ -34,7 +35,7 @@ public class UseProperties {
             return;
         }
         try {
-            this.input = new FileInputStream(this.configFile);
+            this.input = UseProperties.class.getClassLoader().getResourceAsStream(this.configFile);
             this.prop.load(this.input);
         } catch (IOException ex) {
             ex.printStackTrace();
