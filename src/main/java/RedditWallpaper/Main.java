@@ -5,7 +5,6 @@ import net.dean.jraw.paginators.SubredditPaginator;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
 import com.sun.jna.platform.win32.WinDef.UINT_PTR;
-import net.dean.jraw.http.oauth.OAuthException;
 
 public class Main {
     
@@ -54,7 +53,6 @@ public class Main {
             } else {
                 count++;
             }
-            
         }
     }
     
