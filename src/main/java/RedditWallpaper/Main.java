@@ -5,15 +5,17 @@ import net.dean.jraw.paginators.SubredditPaginator;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
 import com.sun.jna.platform.win32.WinDef.UINT_PTR;
+import net.dean.jraw.http.oauth.OAuthException;
 
 public class Main {
     
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         
-        String configFile = "src/main/resources/config.properties";
+        String configFile = "config.properties";
         Properties prop = getConfigProperties(configFile);
         
         RedditConnection connection = new RedditConnection(prop);
+                
         connection.authenticate();
         System.out.println(connection.getRedditClient().me());
         
@@ -22,9 +24,9 @@ public class Main {
         
         Listing<Submission> submissions = earthPorn.next();
         
-        int hours = 1;
+        int hours = 0;
         int minutes = 0;
-        int seconds = 0;
+        int seconds = 10;
         
         long waitTime = getTimeinMS(hours, minutes, seconds);
         
