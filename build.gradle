@@ -1,4 +1,11 @@
-apply plugin: 'java'
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'edu.sc.seis.gradle:launch4j:2.3.0'
+  }
+}
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'RedditWallpaper.Main'
@@ -12,6 +19,9 @@ repositories {
     jcenter()
 }
 
+apply plugin: 'java'
+apply plugin: 'edu.sc.seis.launch4j'
+
 dependencies {
     // TODO: Add dependencies here ...
     // You can read more about how to add dependency here:
@@ -22,4 +32,9 @@ dependencies {
     compile 'net.java.dev.jna:jna:4.3.0'
     compile 'net.java.dev.jna:jna-platform:4.3.0'
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.1'
+}
+
+
+launch4j {
+  mainClassName = 'RedditWallpaper.Main'
 }
