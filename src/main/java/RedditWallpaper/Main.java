@@ -5,10 +5,13 @@ import net.dean.jraw.paginators.SubredditPaginator;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Submission;
 import com.sun.jna.platform.win32.WinDef.UINT_PTR;
+import org.apache.log4j.Logger;
 
 public class Main {
     
     public static void main(String[] args) {
+        
+        final Logger logger = Logger.getLogger(Main.class);
         
         String configFile = "config.properties";
         Properties prop = getConfigProperties(configFile);
@@ -40,7 +43,7 @@ public class Main {
                 w.getFilePath(),
                 new UINT_PTR(SPI.SPIF_UPDATEINIFILE | SPI.SPIF_SENDWININICHANGE));
             
-            
+            logger.info("chosen image: " + w.getFilePath());
             try {
                 Thread.sleep(waitTime);
             } catch (InterruptedException ex) {
