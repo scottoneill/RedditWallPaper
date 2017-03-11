@@ -26,19 +26,10 @@ public class Main {
         
         Listing<Submission> submissions = earthPorn.next();
         
-        int hours;
-        int minutes;
-        int seconds;
+        int hours = 0;
+        int minutes = 0;
+        int seconds = 10;
         
-        if (args.length != 0 && args[0].equals("testing")) {
-            hours = 0;
-            minutes = 0;
-            seconds = 10;
-        } else {
-            hours = 0;
-            minutes = 30;
-            seconds = 0;
-        }
         long waitTime = getTimeinMS(hours, minutes, seconds);
         
         int count = 0;
