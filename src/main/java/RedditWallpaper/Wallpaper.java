@@ -18,7 +18,7 @@ public class Wallpaper {
     }
     
     public String getFilePath() {
-        String dir = "C:\\Users\\Scott\\Desktop\\Earth Porn";
+        String dir = "C:\\Applications\\RedditWallpaper\\Earth Porn";
         return dir + "\\" + chosen.getTitle() + ".jpg";
     }
     
