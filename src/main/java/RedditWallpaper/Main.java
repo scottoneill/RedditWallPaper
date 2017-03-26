@@ -56,6 +56,7 @@ public class Main {
             try {
                 Thread.sleep(waitTime);
             } catch (InterruptedException ex) {
+                logger.error(ex);
                 Thread.currentThread().interrupt();
             }
             

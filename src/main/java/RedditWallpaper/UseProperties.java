@@ -6,17 +6,21 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.lang.ClassLoader;
 
+import org.apache.log4j.Logger;
+
 
 public class UseProperties {
     private Properties prop;
     private String configFile;
     private InputStream input;
+    private final Logger logger;
     
     
     public UseProperties() {
         this.prop = new Properties();
         this.configFile = null;
         this.input = null;
+        this.logger = Logger.getLogger(UseProperties.class);
     }
     
     public String getConfigFile() {
@@ -38,6 +42,7 @@ public class UseProperties {
             this.input = UseProperties.class.getClassLoader().getResourceAsStream(this.configFile);
             this.prop.load(this.input);
         } catch (IOException ex) {
+            this.logger.error(ex);
             ex.printStackTrace();
         }
     }
@@ -47,6 +52,7 @@ public class UseProperties {
             try {
                 this.input.close();
             } catch (IOException e) {
+                this.logger.error(e);
                 e.printStackTrace();
             }
         }

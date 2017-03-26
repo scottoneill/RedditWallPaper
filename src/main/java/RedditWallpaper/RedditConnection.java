@@ -6,16 +6,18 @@ import net.dean.jraw.http.oauth.OAuthData;
 import net.dean.jraw.http.oauth.OAuthException;
 import net.dean.jraw.RedditClient;
 import java.util.Properties;
+import org.apache.log4j.Logger;
 
 public class RedditConnection {
     private RedditClient redditClient;
     private UserAgent myUserAgent;
     private Credentials cred;
     private Properties props;
+    private final Logger logger;
     
     public RedditConnection(Properties props) {
         this.props = props;
-        
+        this.logger = Logger.getLogger(RedditConnection.class);
         this.myUserAgent = UserAgent.of(
                 props.getProperty("TARGET_PLATFORM"),
                 props.getProperty("UNIQUE_ID"),
@@ -40,12 +42,10 @@ public class RedditConnection {
         try {
             authData = this.redditClient.getOAuthHelper().easyAuth(this.cred);
         } catch (OAuthException ex) {
+            this.logger.error(ex);
             System.out.println("Could not validate user: " + ex);
             System.exit(1);
         }
         this.redditClient.authenticate(authData);
     }
-    
-    
-    
 }
