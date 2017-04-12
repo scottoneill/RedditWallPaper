@@ -1,29 +1,16 @@
 package RedditWallpaper;
 
 
-import com.google.common.net.HttpHeaders;
-import java.util.Properties;
-//import net.dean.jraw.paginators.SubredditPaginator;
-//import net.dean.jraw.models.Listing;
-//import net.dean.jraw.models.Submission;
 import org.apache.log4j.Logger;
-
-import java.util.ArrayList;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import org.apache.commons.codec.binary.Base64;
-
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 
+import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Properties;
 
 public class Main {
     
@@ -32,6 +19,7 @@ public class Main {
         final Logger logger = Logger.getLogger(Main.class);
         
         String configFile = "config.properties";
+        
         Properties prop = getConfigProperties(configFile);
         
         String url = "https://www.reddit.com/api/v1/access_token";
@@ -41,14 +29,14 @@ public class Main {
         PostRequest postRequest = postFactory.createRequest(url);
         
         // setup Basic Authentication
-        String auth = "DZVl2XiOzhjmFw" + ":" + "Eoa5W6Gcj5BrA6YDBIkRIpc3xfo";
+        String auth = prop.getProperty("CLIENT_ID") + ":" + prop.getProperty("CLIENT_SECRET");
         byte[] encodedAuth = Base64.encodeBase64(
                         auth.getBytes(Charset.forName("ISO-8859-1")));
         String authHeader = "Basic " + new String(encodedAuth);
         
         postRequest.addHeader(HttpHeaders.AUTHORIZATION, authHeader);
-        postRequest.addParams("username", "ess_j");
-        postRequest.addParams("password", "terrible");
+        postRequest.addParams("username", prop.getProperty("REDDIT_USERNAME"));
+        postRequest.addParams("password", prop.getProperty("REDDIT_PASSWORD"));
         postRequest.addParams("grant_type", "password");
         postRequest.addParams("duration", "permanent");
         
@@ -61,29 +49,19 @@ public class Main {
 	System.out.println("Response Code : " +
                        response.getStatusLine().getStatusCode());
 
-        
-        
-        //JSON printing for testing
-        BufferedReader rd = new BufferedReader(
-                        new InputStreamReader(response.getEntity().getContent()));
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-                result.append(line);
-        }
-        System.out.println(result.toString());
-        
-        
+        ResponseParser parser = new ResponseParser(response);
+        parser.parse();
+        System.out.println(parser.prettyPrintString());
         
         // GET REQUEST
         String requestURL = "https://oauth.reddit.com";
-        String APIRequest = "/api/v1/me";
+        String APIRequest = "/r/earthporn/hot";
         
         GetRequestFactory getFactory = new GetRequestFactory(userAgent);
         GetRequest getRequest = getFactory.createRequest(requestURL + APIRequest);
         
         // JSON Parser
-        JsonObject jsonObject = new JsonParser().parse(result.toString()).getAsJsonObject();
+        JsonObject jsonObject = parser.toJson();
         String accessToken = jsonObject.get("access_token").getAsString();
         String tokenType = jsonObject.get("token_type").getAsString();
 
@@ -96,63 +74,52 @@ public class Main {
 	System.out.println("Response Code : " +
                                 response.getStatusLine().getStatusCode());
         
-        // JSON Printing
-        rd.close();
-        rd = new BufferedReader(
-                        new InputStreamReader(response.getEntity().getContent()));
-        result.delete(0, result.length());
-        line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+
+        
+        parser.setResponse(response);
+        parser.parse();
+        JsonObject content = parser.toJson();
+
+        Page page = new Page();
+        page.updateContent(content);
+        
+        ArrayList<Submission> posts = page.getPosts();
+        BackgroundController controller = new BackgroundController();
+        
+        int hours;
+        int minutes;
+        int seconds;
+        
+        if (args.length != 0 && args[0].equals("testing")) {
+            hours = 0;
+            minutes = 0;
+            seconds = 10;
+        } else {
+            hours = 0;
+            minutes = 30;
+            seconds = 0;
         }
-        String s = result.toString();
-        s = s.replaceAll("(?<=[{;,])", "\t\n");
-        System.out.println(s);
+        long waitTime = getTimeinMS(hours, minutes, seconds);
         
-        
-//        RedditConnection connection = new RedditConnection(prop);
-//                
-//        connection.authenticate();
-//        System.out.println(connection.getRedditClient().me());
-//        
-//        SubredditPaginator earthPorn = new SubredditPaginator(connection.getRedditClient(), "EarthPorn");
-//        Controller controller = new Controller();
-//        
-//        Listing<Submission> submissions = earthPorn.next();
-//        
-//        int hours;
-//        int minutes;
-//        int seconds;
-//        
-//        if (args.length != 0 && args[0].equals("testing")) {
-//            hours = 0;
-//            minutes = 0;
-//            seconds = 10;
-//        } else {
-//            hours = 0;
-//            minutes = 30;
-//            seconds = 0;
-//        }
-//        long waitTime = getTimeinMS(hours, minutes, seconds);
-//        
-//        int count = 0;
-//        while (true) {         
-//            controller.chooseBackground(submissions);
-//            
-//            try {
-//                Thread.sleep(waitTime);
-//            } catch (InterruptedException ex) {
-//                logger.error(ex);
-//                Thread.currentThread().interrupt();
-//            }
-//            
-//            if (count == 5) {
+        int count = 0;
+        while (true) {         
+            controller.chooseBackground(posts);
+            
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException ex) {
+                logger.error(ex);
+                Thread.currentThread().interrupt();
+            }
+            
+            if (count == 5) {
 //                submissions = earthPorn.next();
 //                count = 0;
-//            } else {
-//                count++;
-//            }
-//        }
+                break;
+            } else {
+                count++;
+            }
+        }
     }
     
     public static Properties getConfigProperties(String configFilePath) {

@@ -35,6 +35,11 @@ dependencies {
     compile 'net.java.dev.jna:jna-platform:4.3.0'
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.1'
     compile group: 'log4j', name: 'log4j', version: '1.2.16'
+    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.0-alpha4'
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
+
 }
 
 

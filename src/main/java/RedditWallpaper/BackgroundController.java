@@ -1,8 +1,7 @@
 package RedditWallpaper;
 
+import java.util.ArrayList;
 import java.util.Random;
-import net.dean.jraw.models.Listing;
-import net.dean.jraw.models.Submission;
 import org.apache.log4j.Logger;
 
 public class BackgroundController {
@@ -14,7 +13,7 @@ public class BackgroundController {
     public BackgroundController() {
         this.downloader = new Downloader();
         this.logger = Logger.getLogger(BackgroundController.class);
-        
+        this.background = Background.getInstance();
         if (OSUtils.isUnix()) {
             this.state = new LinuxOS();
         } else if (OSUtils.isWindows()) {
@@ -24,7 +23,7 @@ public class BackgroundController {
         }
     }
     
-    public void chooseBackground(Listing<Submission> submissions) {
+    public void chooseBackground(ArrayList<Submission> submissions) {
         Random random = new Random();
         
         boolean isImage = false;
@@ -34,22 +33,21 @@ public class BackgroundController {
         while (!isImage) {
             number = random.nextInt(submissions.size()-1);
             s = submissions.get(number);
-            isImage = s.getPostHint().equals(Submission.PostHint.IMAGE);
+            isImage = s.getPostHint().equals("image");
         }
-        System.out.println("Chosen: " + s.getTitle());
+        System.out.println("Chosen : " + s.getTitle());
         
         String filePath = generateFilePath(s.getTitle());
-        this.logger.info("Chosen image: " + filePath);
-        this.downloader.download(s.getUrl(), filePath);
+        this.logger.info("Chosen : " + filePath);
+        this.downloader.download(s.getURL(), filePath);
         this.background.setFilePath(filePath);
         this.state.setBackground(filePath);
     }
     
     private String generateFilePath(String name) {
         String sanitisedFilePath = this.sanitiseString(name);
-        
         String dir = "./Downloaded";
-        return  dir + "\\" + sanitisedFilePath + ".jpg";
+        return  dir + "/" + sanitisedFilePath + ".jpg";
     }
     
     private String sanitiseString(String s) {
