@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 
 public class GetRequestFactory implements RequestFactory {
     private String userAgent;

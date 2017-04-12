@@ -113,8 +113,6 @@ public class Main {
             }
             
             if (count == 5) {
-//                submissions = earthPorn.next();
-//                count = 0;
                 break;
             } else {
                 count++;

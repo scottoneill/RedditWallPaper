@@ -6,13 +6,11 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-
 public class UseProperties {
     private Properties prop;
     private String configFile;
     private InputStream input;
     private final Logger logger;
-    
     
     public UseProperties() {
         this.prop = new Properties();
@@ -33,7 +31,6 @@ public class UseProperties {
         this.configFile = configFile;
         
         if (this.configFile == null) {
-            System.out.println("prop is null");
             return;
         }
         try {
@@ -41,7 +38,6 @@ public class UseProperties {
             this.prop.load(this.input);
         } catch (IOException ex) {
             this.logger.error(ex);
-            ex.printStackTrace();
         }
     }
     
@@ -51,7 +47,6 @@ public class UseProperties {
                 this.input.close();
             } catch (IOException e) {
                 this.logger.error(e);
-                e.printStackTrace();
             }
         }
     }

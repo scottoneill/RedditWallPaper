@@ -14,8 +14,8 @@ public class PostRequest implements Request {
     
     public PostRequest(String url) throws URISyntaxException {
         this.post = new HttpPost(url);
-        this.headers = new HashMap<String, String>();
-        this.urlParameters = new ArrayList<NameValuePair>();
+        this.headers = new HashMap<>();
+        this.urlParameters = new ArrayList<>();
     }
     
     

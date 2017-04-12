@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 public class LinuxOS implements OSState {
     
     @Override
@@ -28,6 +27,4 @@ public class LinuxOS implements OSState {
             System.out.println(ex);
         }
     }
-    
-    
 }
