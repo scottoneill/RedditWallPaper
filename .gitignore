@@ -40,3 +40,13 @@ config.properties
 
 # End of https://www.gitignore.io/api/java,gradle
 /src/main/resources/config.properties-TEMPLATE
+/.nb-gradle/
+
+# Ignore downloaded Backgrounds
+*.jpg
+
+# Ignore JSON testing files
+*.json
+
+# Debug logs
+*.txt
